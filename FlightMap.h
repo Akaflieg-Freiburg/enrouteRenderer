@@ -30,8 +30,6 @@ public:
         return m_zoom;
     }
 
-
-
 signals:
     void rotationChanged();
     void zoomChanged();
