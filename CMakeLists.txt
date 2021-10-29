@@ -25,6 +25,8 @@ find_package(Qt6 COMPONENTS Core Quick REQUIRED)
 
 set(SOURCES
   ${PROJECT_NAME}.qrc
+  FlightMap.cpp
+  FlightMap.h
   main.cpp
   )
 

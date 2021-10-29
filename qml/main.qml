@@ -3,6 +3,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import enroute
+
 ApplicationWindow {
     id: window
     width: 700
@@ -13,17 +15,17 @@ ApplicationWindow {
         columns: 2
         anchors.fill: parent
 
-        Rectangle {
+        FlightMap {
             Layout.columnSpan: 2
             Layout.fillHeight: true
             Layout.fillWidth: true
 
             width: 700
             height: 700
-            color: "blue"
         }
 
         Label {
+            Layout.leftMargin: 5
             text: "Zoom"
         }
         Slider {
@@ -33,6 +35,7 @@ ApplicationWindow {
             to: 14
         }
         Label {
+            Layout.leftMargin: 5
             text: "Rotation"
         }
         Slider {
