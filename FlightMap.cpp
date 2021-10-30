@@ -24,6 +24,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QPainter>
+#include <QPixmap>
 #include <QSet>
 #include <cmath>
 
@@ -80,8 +81,10 @@ void FlightMap::paint(QPainter *painter)
     painter->fillRect(0, 0, static_cast<int>(width()), static_cast<int>(height()), QColor(0xe0, 0xe0, 0x00, 0xe0));
 
     foreach(auto waypoint, m_waypoints) {
+        QImage image(":"+waypoint.icon());
         auto center = fromGeoCoordinate(waypoint.coordinate());
-        painter->fillRect(center.x(), center.y(), 2, 2, Qt::black);
+//        painter->fillRect(center.x(), center.y(), 2, 2, Qt::black);
+        painter->drawImage(center.x(), center.y(), image);
     }
 
 }

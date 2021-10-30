@@ -2,5 +2,23 @@
     <qresource prefix="/">
         <file>qtquickcontrols2.conf</file>
         <file>data/Germany.geojson</file>
+        <file>icons/waypoints/AD-GLD.svg</file>
+        <file>icons/waypoints/AD-GRASS.svg</file>
+        <file>icons/waypoints/AD-INOP.svg</file>
+        <file>icons/waypoints/AD-MIL-GRASS.svg</file>
+        <file>icons/waypoints/AD-MIL-PAVED.svg</file>
+        <file>icons/waypoints/AD-MIL.svg</file>
+        <file>icons/waypoints/AD-PAVED.svg</file>
+        <file>icons/waypoints/AD.svg</file>
+        <file>icons/waypoints/AD-UL.svg</file>
+        <file>icons/waypoints/AD-WATER.svg</file>
+        <file>icons/waypoints/MRP.svg</file>
+        <file>icons/waypoints/NDB.svg</file>
+        <file>icons/waypoints/RP.svg</file>
+        <file>icons/waypoints/VORDME.svg</file>
+        <file>icons/waypoints/VOR.svg</file>
+        <file>icons/waypoints/VORTAC.svg</file>
+        <file>icons/waypoints/WP-map.svg</file>
+        <file>icons/waypoints/WP.svg</file>
     </qresource>
 </RCC>
