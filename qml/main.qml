@@ -7,8 +7,8 @@ import enroute
 
 ApplicationWindow {
     id: window
-    width: 400
-    height: 400
+    width: 800
+    height: 800
     visible: true
 
     GridLayout {
@@ -16,6 +16,7 @@ ApplicationWindow {
         anchors.fill: parent
 
         FlightMap {
+
             Layout.columnSpan: 2
             Layout.fillHeight: true
             Layout.fillWidth: true

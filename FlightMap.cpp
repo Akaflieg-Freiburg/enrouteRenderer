@@ -25,6 +25,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPixmap>
 #include <QSet>
 #include <cmath>
@@ -81,26 +82,134 @@ void FlightMap::paint(QPainter *painter)
     // Draw airspaces
     foreach(auto airspace, m_airspaces) {
         auto geoPolygon = airspace.polygon();
-        QPolygonF poly;
+        QPolygonF pixelPolygon;
         foreach(auto coordinate, geoPolygon.perimeter()) {
-            poly.append( fromGeoCoordinate(coordinate) );
+            pixelPolygon.append( fromGeoCoordinate(coordinate) );
         }
-        painter->drawPolygon(poly);
+
+        if ((airspace.CAT() == "A") ||
+            (airspace.CAT() == "B") ||
+            (airspace.CAT() == "C") ||
+            (airspace.CAT() == "D")) {
+            QPainterPath clipPath;
+            clipPath.addPolygon(pixelPolygon);
+            painter->setClipPath(clipPath);
+
+            painter->setPen({Qt::blue, 2});
+            painter->setBrush({});
+            painter->drawPolygon(pixelPolygon);
+
+            painter->setClipping(true);
+            QColor color(Qt::blue);
+            color.setAlphaF(0.2);
+            painter->setPen({color, 14});
+            painter->setBrush({});
+            painter->drawPolygon(pixelPolygon);
+            painter->setClipping(false);
+
+            continue;
+        }
+        if (airspace.CAT() == "CTR") {
+            painter->setPen( QPen(Qt::blue, 2, Qt::DashLine));
+            QColor colorR(Qt::red);
+            colorR.setAlphaF(0.2);
+            painter->setBrush(colorR);
+            painter->drawPolygon(pixelPolygon);
+
+            QPainterPath clipPath;
+            clipPath.addPolygon(pixelPolygon);
+            painter->setClipPath(clipPath);
+            painter->setClipping(true);
+            QColor color(Qt::blue);
+            color.setAlphaF(0.2);
+            painter->setPen({color, 14});
+            painter->setBrush({});
+            painter->drawPolygon(pixelPolygon);
+            painter->setClipping(false);
+
+            continue;
+        }
+        if (airspace.CAT() == "FIS") {
+            painter->setPen({Qt::black, 2});
+            painter->setBrush({});
+            painter->drawPolygon(pixelPolygon);
+            continue;
+        }
+        if (airspace.CAT() == "GLD") {
+            QColor color(Qt::yellow);
+            color.setAlphaF(0.1);
+            painter->setPen({Qt::yellow, 2});
+            painter->setBrush( color );
+            painter->drawPolygon(pixelPolygon);
+            continue;
+        }
+        if (airspace.CAT() == "NRA") {
+            QPainterPath clipPath;
+            clipPath.addPolygon(pixelPolygon);
+            painter->setClipPath(clipPath);
+
+            painter->setPen({Qt::green, 2});
+            painter->setBrush({});
+            painter->drawPolygon(pixelPolygon);
+
+            painter->setClipping(true);
+            QColor color(Qt::green);
+            color.setAlphaF(0.2);
+            painter->setPen({color, 14});
+            painter->setBrush({});
+            painter->drawPolygon(pixelPolygon);
+            painter->setClipping(false);
+
+            continue;
+        }
+        if ((airspace.CAT() == "DNG")  ||
+            (airspace.CAT() == "P") ||
+            (airspace.CAT() == "R")) {
+            QPainterPath clipPath;
+            clipPath.addPolygon(pixelPolygon);
+            painter->setClipPath(clipPath);
+
+            painter->setPen(QPen(Qt::red, 2, Qt::DashLine));
+            painter->setBrush({});
+            painter->drawPolygon(pixelPolygon);
+
+            painter->setClipping(true);
+            QColor color(Qt::red);
+            color.setAlphaF(0.2);
+            painter->setPen({color, 14});
+            painter->setBrush({});
+            painter->drawPolygon(pixelPolygon);
+            painter->setClipping(false);
+
+            continue;
+        }
+        if (airspace.CAT() == "RMZ") {
+            QColor color(Qt::blue);
+            color.setAlphaF(0.2);
+            painter->setPen( QPen(Qt::blue, 2, Qt::DashLine) );
+            painter->setBrush( color );
+            painter->drawPolygon(pixelPolygon);
+            continue;
+        }
+        if (airspace.CAT() == "PJE") {
+            painter->setPen( QPen(Qt::red, 2, Qt::DashLine) );
+            painter->setBrush( {} );
+            painter->drawPolygon(pixelPolygon);
+            continue;
+        }
+        if (airspace.CAT() == "TMZ") {
+            painter->setPen( QPen(Qt::black, 2, Qt::DashDotDotLine) );
+            painter->setBrush( {} );
+            painter->drawPolygon(pixelPolygon);
+            continue;
+        }
+
+        qWarning() << "Not implemented:" << airspace.CAT();
     }
 
     // Draw waypoints
     foreach(auto waypoint, m_waypoints) {
-        QImageReader imgReader(":"+waypoint.icon());
-
-        if (!imgReader.canRead()) {
-            qWarning() << waypoint.icon();
-        }
-
-        if (waypoint.icon().contains("svg")) {
-            imgReader.setScaledSize( QSize(30, 30) );
-        }
-        QImage image = imgReader.read();
-
+        QImage image(":"+waypoint.icon());
         auto center = fromGeoCoordinate(waypoint.coordinate());
         painter->drawImage(center.x()-image.width()/2.0, center.y()-image.height()/2.0, image);
     }
