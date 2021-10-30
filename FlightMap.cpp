@@ -19,7 +19,12 @@
  ***************************************************************************/
 
 #include <QDebug>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPainter>
+#include <QSet>
 #include <cmath>
 
 #include "FlightMap.h"
@@ -29,6 +34,42 @@ FlightMap::FlightMap(QQuickItem *parent)
     : QQuickPaintedItem(parent)
 {
 
+    QFile file(":data/Germany.geojson");
+    file.open(QIODevice::ReadOnly);
+    auto document = QJsonDocument::fromJson(file.readAll());
+    file.close();
+
+    foreach(auto value, document.object()["features"].toArray()) {
+        auto object = value.toObject();
+
+        // Check if the current object is a waypoint. If so, add it to the list of waypoints.
+        GeoMaps::Waypoint wp(object);
+        if (wp.isValid()) {
+            m_waypoints.append(wp);
+            continue;
+        }
+
+        // Check if the current object is an airspace. If so, add it to the list of airspaces.
+        GeoMaps::Airspace as(object);
+        if (as.isValid()) {
+            m_airspaces.append(as);
+            continue;
+        }
+    }
+
+}
+
+
+auto FlightMap::fromGeoCoordinate(const QGeoCoordinate& coordinate) const -> QPointF
+{
+    if (!coordinate.isValid()) {
+        return {};
+    }
+
+    auto centerInWorldPixel = toWorldPixelCoordinate(m_center);
+    auto coordinateInWorldPixel = toWorldPixelCoordinate(coordinate);
+
+    return coordinateInWorldPixel-centerInWorldPixel+QPointF(width()/2.0, height()/2.0);
 }
 
 
@@ -37,6 +78,11 @@ void FlightMap::paint(QPainter *painter)
 
     // Draw underlying white, slightly tranparent rectangle
     painter->fillRect(0, 0, static_cast<int>(width()), static_cast<int>(height()), QColor(0xe0, 0xe0, 0x00, 0xe0));
+
+    foreach(auto waypoint, m_waypoints) {
+        auto center = fromGeoCoordinate(waypoint.coordinate());
+        painter->fillRect(center.x(), center.y(), 2, 2, Qt::black);
+    }
 
 }
 
@@ -59,6 +105,7 @@ void FlightMap::setBearing(double newBearing)
     qWarning() << "new bearing" << newBearing;
     m_bearing = newBearing;
     emit bearingChanged();
+    update();
 }
 
 
@@ -74,6 +121,7 @@ void FlightMap::setCenter(const QGeoCoordinate& newCenter)
     qWarning() << "new center" << newCenter;
     m_center = newCenter;
     emit centerChanged();
+    update();
 }
 
 
@@ -95,4 +143,5 @@ void FlightMap::setZoom(double newZoom)
     qWarning() << "new zoom" << newZoom;
     m_zoom = newZoom;
     emit zoomChanged();
+    update();
 }

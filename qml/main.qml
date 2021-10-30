@@ -23,7 +23,6 @@ ApplicationWindow {
             bearing: bearingSlider.value
             zoom: zoomSlider.value
 
-
             width: 700
             height: 700
 

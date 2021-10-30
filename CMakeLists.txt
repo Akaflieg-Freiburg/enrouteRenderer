@@ -25,9 +25,15 @@ find_package(Qt6 COMPONENTS Core Positioning Quick REQUIRED)
 
 set(SOURCES
   ${PROJECT_NAME}.qrc
+  geomaps/Airspace.cpp
+  geomaps/Airspace.h
+  geomaps/Waypoint.cpp
+  geomaps/Waypoint.h
   FlightMap.cpp
   FlightMap.h
   main.cpp
+  units/Distance.cpp
+  units/Distance.h
   )
 
   
