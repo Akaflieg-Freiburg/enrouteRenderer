@@ -7,8 +7,8 @@ import enroute
 
 ApplicationWindow {
     id: window
-    width: 700
-    height: 700
+    width: 400
+    height: 400
     visible: true
 
     GridLayout {
@@ -20,8 +20,14 @@ ApplicationWindow {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
+            bearing: bearingSlider.value
+            zoom: zoomSlider.value
+
+
             width: 700
             height: 700
+
+
         }
 
         Label {
@@ -29,6 +35,8 @@ ApplicationWindow {
             text: "Zoom"
         }
         Slider {
+            id: zoomSlider
+
             Layout.fillWidth: true
             from: 7
             value: 10
@@ -36,9 +44,11 @@ ApplicationWindow {
         }
         Label {
             Layout.leftMargin: 5
-            text: "Rotation"
+            text: "Bearing"
         }
         Slider {
+            id: bearingSlider
+
             Layout.fillWidth: true
             from: 0
             value: 0

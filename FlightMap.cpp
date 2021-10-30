@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <QDebug>
 #include <QPainter>
 #include <cmath>
 
@@ -28,8 +29,6 @@ FlightMap::FlightMap(QQuickItem *parent)
     : QQuickPaintedItem(parent)
 {
 
-    setRenderTarget(QQuickPaintedItem::FramebufferObject);
-
 }
 
 
@@ -39,37 +38,61 @@ void FlightMap::paint(QPainter *painter)
     // Draw underlying white, slightly tranparent rectangle
     painter->fillRect(0, 0, static_cast<int>(width()), static_cast<int>(height()), QColor(0xe0, 0xe0, 0x00, 0xe0));
 
-
 }
 
 
-void FlightMap::setRotation(double newRotation)
+void FlightMap::setBearing(double newBearing)
 {
-    if (!qIsFinite(newRotation))
+    if (!qIsFinite(newBearing)) {
         return;
-    if (newRotation < 0.0)
+    }
+    if (newBearing < 0.0) {
         return;
-    if (newRotation > 360.0)
+    }
+    if (newBearing > 360.0) {
         return;
-    if (newRotation == m_rotation)
+    }
+    if (newBearing == m_bearing) {
         return;
+    }
 
-    m_rotation = newRotation;
-    emit rotationChanged();
+    qWarning() << "new bearing" << newBearing;
+    m_bearing = newBearing;
+    emit bearingChanged();
+}
+
+
+void FlightMap::setCenter(const QGeoCoordinate& newCenter)
+{
+    if (!newCenter.isValid()) {
+        return;
+    }
+    if (newCenter == m_center) {
+        return;
+    }
+
+    qWarning() << "new center" << newCenter;
+    m_center = newCenter;
+    emit centerChanged();
 }
 
 
 void FlightMap::setZoom(double newZoom)
 {
-    if (!qIsFinite(newZoom))
+    if (!qIsFinite(newZoom)) {
         return;
-    if (newZoom < minZoom)
+    }
+    if (newZoom < minZoom) {
         return;
-    if (newZoom > maxZoom)
+    }
+    if (newZoom > maxZoom) {
         return;
-    if (newZoom == m_zoom)
+    }
+    if (newZoom == m_zoom) {
         return;
+    }
 
+    qWarning() << "new zoom" << newZoom;
     m_zoom = newZoom;
     emit zoomChanged();
 }
