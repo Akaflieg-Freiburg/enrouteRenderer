@@ -20,6 +20,7 @@
 
 #include <QDebug>
 #include <QFile>
+#include <QImageReader>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -77,14 +78,31 @@ auto FlightMap::fromGeoCoordinate(const QGeoCoordinate& coordinate) const -> QPo
 void FlightMap::paint(QPainter *painter)
 {
 
-    // Draw underlying white, slightly tranparent rectangle
-    painter->fillRect(0, 0, static_cast<int>(width()), static_cast<int>(height()), QColor(0xe0, 0xe0, 0x00, 0xe0));
+    // Draw airspaces
+    foreach(auto airspace, m_airspaces) {
+        auto geoPolygon = airspace.polygon();
+        QPolygonF poly;
+        foreach(auto coordinate, geoPolygon.perimeter()) {
+            poly.append( fromGeoCoordinate(coordinate) );
+        }
+        painter->drawPolygon(poly);
+    }
 
+    // Draw waypoints
     foreach(auto waypoint, m_waypoints) {
-        QImage image(":"+waypoint.icon());
+        QImageReader imgReader(":"+waypoint.icon());
+
+        if (!imgReader.canRead()) {
+            qWarning() << waypoint.icon();
+        }
+
+        if (waypoint.icon().contains("svg")) {
+            imgReader.setScaledSize( QSize(30, 30) );
+        }
+        QImage image = imgReader.read();
+
         auto center = fromGeoCoordinate(waypoint.coordinate());
-//        painter->fillRect(center.x(), center.y(), 2, 2, Qt::black);
-        painter->drawImage(center.x(), center.y(), image);
+        painter->drawImage(center.x()-image.width()/2.0, center.y()-image.height()/2.0, image);
     }
 
 }
