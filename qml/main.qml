@@ -15,8 +15,9 @@ ApplicationWindow {
         columns: 2
         anchors.fill: parent
 
-        FlightMap {
+        GestureEvent
 
+        FlightMap {
             Layout.columnSpan: 2
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -27,7 +28,8 @@ ApplicationWindow {
             width: 700
             height: 700
 
-
+            MouseArea {
+            }
         }
 
         Label {
