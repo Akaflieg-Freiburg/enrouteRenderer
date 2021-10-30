@@ -5,56 +5,38 @@
         <file>icons/waypoints/AD@2x.png</file>
         <file>icons/waypoints/AD-GLD@2x.png</file>
         <file>icons/waypoints/AD-GLD.png</file>
-        <file>icons/waypoints/AD-GLD.svg</file>
         <file>icons/waypoints/AD-GRASS@2x.png</file>
         <file>icons/waypoints/AD-GRASS.png</file>
-        <file>icons/waypoints/AD-GRASS.svg</file>
         <file>icons/waypoints/AD-INOP@2x.png</file>
         <file>icons/waypoints/AD-INOP.png</file>
-        <file>icons/waypoints/AD-INOP.svg</file>
         <file>icons/waypoints/AD-MIL@2x.png</file>
         <file>icons/waypoints/AD-MIL-GRASS@2x.png</file>
         <file>icons/waypoints/AD-MIL-GRASS.png</file>
-        <file>icons/waypoints/AD-MIL-GRASS.svg</file>
         <file>icons/waypoints/AD-MIL-PAVED@2x.png</file>
         <file>icons/waypoints/AD-MIL-PAVED.png</file>
-        <file>icons/waypoints/AD-MIL-PAVED.svg</file>
         <file>icons/waypoints/AD-MIL.png</file>
-        <file>icons/waypoints/AD-MIL.svg</file>
         <file>icons/waypoints/AD-PAVED@2x.png</file>
         <file>icons/waypoints/AD-PAVED.png</file>
-        <file>icons/waypoints/AD-PAVED.svg</file>
         <file>icons/waypoints/AD.png</file>
-        <file>icons/waypoints/AD.svg</file>
         <file>icons/waypoints/AD-UL@2x.png</file>
         <file>icons/waypoints/AD-UL.png</file>
-        <file>icons/waypoints/AD-UL.svg</file>
         <file>icons/waypoints/AD-WATER@2x.png</file>
         <file>icons/waypoints/AD-WATER.png</file>
-        <file>icons/waypoints/AD-WATER.svg</file>
-	<file alias="icons/waypoints/DVOR.svg">icons/waypoints/VOR.svg</file>
-	<file alias="icons/waypoints/DVOR-DME.svg">icons/waypoints/VORDME.svg</file>
-	<file alias="icons/waypoints/DVORTAC.svg">icons/waypoints/VORTAC.svg</file>
+	<file alias="icons/waypoints/DVOR.png">icons/waypoints/VOR.png</file>
+	<file alias="icons/waypoints/DVOR-DME.png">icons/waypoints/VORDME.png</file>
+	<file alias="icons/waypoints/DVORTAC.png">icons/waypoints/VORTAC.png</file>
         <file>icons/waypoints/MRP@2x.png</file>
         <file>icons/waypoints/MRP.png</file>
-        <file>icons/waypoints/MRP.svg</file>
         <file>icons/waypoints/NDB@2x.png</file>
         <file>icons/waypoints/NDB.png</file>
-        <file>icons/waypoints/NDB.svg</file>
         <file>icons/waypoints/RP@2x.png</file>
         <file>icons/waypoints/RP.png</file>
-        <file>icons/waypoints/RP.svg</file>
         <file>icons/waypoints/VOR@2x.png</file>
-	<file alias="icons/waypoints/VOR-DME.svg">icons/waypoints/VORDME.svg</file>
+	<file alias="icons/waypoints/VOR-DME.png">icons/waypoints/VORDME.png</file>
         <file>icons/waypoints/VORDME@2x.png</file>
         <file>icons/waypoints/VORDME.png</file>
-        <file>icons/waypoints/VORDME.svg</file>
         <file>icons/waypoints/VOR.png</file>
-        <file>icons/waypoints/VOR.svg</file>
         <file>icons/waypoints/VORTAC@2x.png</file>
         <file>icons/waypoints/VORTAC.png</file>
-        <file>icons/waypoints/VORTAC.svg</file>
-        <file>icons/waypoints/WP-map.svg</file>
-        <file>icons/waypoints/WP.svg</file>
     </qresource>
 </RCC>
