@@ -88,6 +88,8 @@ protected:
     void paint(QPainter *painter) override;
 
 private:
+    QVector<QRectF> blockedRectagles;
+
     QVector<GeoMaps::Airspace> m_airspaces;
     QVector<GeoMaps::Waypoint> m_waypoints;
 

@@ -196,9 +196,28 @@ void FlightMap::paint(QPainter *painter)
     }
 
     // Draw waypoints
+    blockedRectagles.clear();
     foreach(auto waypoint, m_waypoints) {
         QImage image(":"+waypoint.icon());
         auto center = toScreenCoordinate(waypoint.coordinate());
+
+
+        QRectF thisRect(center.x()-image.width()/2.0,
+                        center.y()-image.height()/2.0,
+                        image.width(),
+                        image.height());
+        bool intersects = false;
+        foreach(auto rect, blockedRectagles) {
+            if (rect.intersects(thisRect)) {
+                intersects = true;
+                break;
+            }
+        }
+        if (intersects) {
+            continue;
+        }
+
+        blockedRectagles.append(thisRect);
 
         painter->save();
         painter->translate(center);
