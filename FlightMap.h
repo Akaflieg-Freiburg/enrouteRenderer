@@ -32,17 +32,51 @@ public:
         return m_center;
     }
 
-    QPointF fromGeoCoordinate(const QGeoCoordinate& coordinate) const;
+    Q_INVOKABLE QPointF toPixelCoordinate(const QGeoCoordinate& coordinate)
+    {
+        auto delta = webMercatorProjection(coordinate)-webMercatorProjection(m_center);
+        return exp2(m_zoom+8.0)*delta+QPointF(width()/2.0, height()/2.0);
+    }
+
+    Q_INVOKABLE QGeoCoordinate fromPixelCoordinate(const QPointF& pixelCoordinate)
+    {
+        auto webMercatorCoords = exp2(-m_zoom-8.0)*(pixelCoordinate-QPointF(width()/2.0, height()/2.0))+webMercatorProjection(m_center);
+        return inverseWebMercatorProjection(webMercatorCoords);
+    }
 
     void setBearing(double newBearing);
 
     void setCenter(const QGeoCoordinate& newCenter);
 
+    Q_INVOKABLE void setCenter(const QGeoCoordinate& coordinate, const QPointF& screenPosition);
+
     void setZoom(double newZoom);
+
+    Q_INVOKABLE void setZoom(double newZoom, const QPointF& screenPosition);
 
     double zoom() const
     {
         return m_zoom;
+    }
+
+    /*! \brief WebMercator projection
+     *
+     *  @param coordinate geographic coordinate
+     *
+     *  @returns webMercator projection of the coordinate, where x and y are in the range [0.0 … 1.0]
+     */
+    Q_INVOKABLE static QPointF webMercatorProjection(const QGeoCoordinate& coordinate)
+    {
+        auto x = (coordinate.longitude()+180.0)/360.0;
+        auto y = qBound(0.0, (M_PI - log(tan(qDegreesToRadians(coordinate.latitude()/2.0 + 45.0))))/(2.0*M_PI), 1.0);
+        return QPointF(x,y);
+    }
+
+    Q_INVOKABLE static QGeoCoordinate inverseWebMercatorProjection(const QPointF& point)
+    {
+        auto longitude = (360.0*point.x())-180.0;
+        auto latitude = 2.0*(qRadiansToDegrees(atan(exp(-(2.0*M_PI)*point.y()+M_PI)))-45.0);
+        return QGeoCoordinate(latitude, longitude);
     }
 
 signals:
@@ -55,10 +89,7 @@ protected:
 
 private:
     QPointF toWorldPixelCoordinate(const QGeoCoordinate& coordinate) const {
-        return QPointF(
-            exp2(m_zoom)*256.0*(coordinate.longitude()+180.0)/360.0,
-            exp2(m_zoom)*256.0*(M_PI - log(tan(qDegreesToRadians(coordinate.latitude()/2.0 + 45.0))))/(2.0*M_PI)
-            );
+        return exp2(m_zoom+8.0)*webMercatorProjection(coordinate);
     }
 
     QVector<GeoMaps::Airspace> m_airspaces;

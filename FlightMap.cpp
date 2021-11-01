@@ -36,6 +36,8 @@
 FlightMap::FlightMap(QQuickItem *parent)
     : QQuickPaintedItem(parent)
 {
+    qWarning() << inverseWebMercatorProjection( webMercatorProjection( QGeoCoordinate(48, 7)));
+
 
     QFile file(":data/Germany.geojson");
     file.open(QIODevice::ReadOnly);
@@ -63,18 +65,6 @@ FlightMap::FlightMap(QQuickItem *parent)
 }
 
 
-auto FlightMap::fromGeoCoordinate(const QGeoCoordinate& coordinate) const -> QPointF
-{
-    if (!coordinate.isValid()) {
-        return {};
-    }
-
-    auto centerInWorldPixel = toWorldPixelCoordinate(m_center);
-    auto coordinateInWorldPixel = toWorldPixelCoordinate(coordinate);
-
-    return coordinateInWorldPixel-centerInWorldPixel+QPointF(width()/2.0, height()/2.0);
-}
-
 
 void FlightMap::paint(QPainter *painter)
 {
@@ -84,7 +74,7 @@ void FlightMap::paint(QPainter *painter)
         auto geoPolygon = airspace.polygon();
         QPolygonF pixelPolygon;
         foreach(auto coordinate, geoPolygon.perimeter()) {
-            pixelPolygon.append( fromGeoCoordinate(coordinate) );
+            pixelPolygon.append( toPixelCoordinate(coordinate) );
         }
 
         if ((airspace.CAT() == "A") ||
@@ -210,7 +200,7 @@ void FlightMap::paint(QPainter *painter)
     // Draw waypoints
     foreach(auto waypoint, m_waypoints) {
         QImage image(":"+waypoint.icon());
-        auto center = fromGeoCoordinate(waypoint.coordinate());
+        auto center = toPixelCoordinate(waypoint.coordinate());
         painter->drawImage(center.x()-image.width()/2.0, center.y()-image.height()/2.0, image);
     }
 
@@ -248,10 +238,15 @@ void FlightMap::setCenter(const QGeoCoordinate& newCenter)
         return;
     }
 
-    qWarning() << "new center" << newCenter;
     m_center = newCenter;
     emit centerChanged();
     update();
+}
+
+void FlightMap::setCenter(const QGeoCoordinate& coordinate, const QPointF& screenPosition)
+{
+    auto inter = exp2(m_zoom+8.0)*webMercatorProjection(coordinate)-screenPosition+QPointF(width()/2.0, height()/2.0);
+    setCenter( inverseWebMercatorProjection(exp2(-m_zoom-8.0)*inter) );
 }
 
 
@@ -274,4 +269,12 @@ void FlightMap::setZoom(double newZoom)
     m_zoom = newZoom;
     emit zoomChanged();
     update();
+}
+
+
+void FlightMap::setZoom(double newZoom, const QPointF& screenPosition)
+{
+    auto coord = fromPixelCoordinate(screenPosition);
+    setZoom(newZoom);
+    setCenter(coord, screenPosition);
 }
