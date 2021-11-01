@@ -267,6 +267,22 @@ auto GeoMaps::Waypoint::icon() const -> QString
 }
 
 
+auto GeoMaps::Waypoint::iconOrientation() const -> double
+{
+
+    auto CAT = category();
+    if ((CAT == "AD-GRASS") ||
+        (CAT == "AD-MIL-GRASS") ||
+        (CAT == "AD-MIL-PAVED") ||
+        (CAT == "AD-PAVED") ||
+        (CAT == "AD-GRASS")) {
+        return m_properties["ORI"].toDouble();
+    }
+    return 0.0;
+
+}
+
+
 auto GeoMaps::Waypoint::tabularDescription() const -> QList<QString>
 {
     QList<QString> result;

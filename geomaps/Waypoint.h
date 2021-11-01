@@ -204,6 +204,18 @@ public:
      */
     QString icon() const;
 
+    /*! \brief Suggested orientation of the icon for use in GUI
+     *
+     *  This property holds the URL of an icon, suitable for the representation of the waypoint in the GUI.
+     */
+    Q_PROPERTY(double iconOrientation READ iconOrientation CONSTANT)
+
+    /*! \brief Getter function for property with the same name
+     *
+     * @returns Property iconOrientation
+     */
+    double iconOrientation() const;
+
     /* \brief Validity
      *
      * This property is set to true if the waypoint has a valid coordinate and if the

@@ -32,15 +32,15 @@ public:
         return m_center;
     }
 
-    Q_INVOKABLE QPointF toPixelCoordinate(const QGeoCoordinate& coordinate)
+    Q_INVOKABLE QPointF toScreenCoordinate(const QGeoCoordinate& coordinate)
     {
         auto delta = webMercatorProjection(coordinate)-webMercatorProjection(m_center);
         return exp2(m_zoom+8.0)*delta+QPointF(width()/2.0, height()/2.0);
     }
 
-    Q_INVOKABLE QGeoCoordinate fromPixelCoordinate(const QPointF& pixelCoordinate)
+    Q_INVOKABLE QGeoCoordinate fromScreenCoordinate(const QPointF& screenCoordinate)
     {
-        auto webMercatorCoords = exp2(-m_zoom-8.0)*(pixelCoordinate-QPointF(width()/2.0, height()/2.0))+webMercatorProjection(m_center);
+        auto webMercatorCoords = exp2(-m_zoom-8.0)*(screenCoordinate-QPointF(width()/2.0, height()/2.0))+webMercatorProjection(m_center);
         return inverseWebMercatorProjection(webMercatorCoords);
     }
 
@@ -48,11 +48,11 @@ public:
 
     void setCenter(const QGeoCoordinate& newCenter);
 
-    Q_INVOKABLE void setCenter(const QGeoCoordinate& coordinate, const QPointF& screenPosition);
+    Q_INVOKABLE void setCenter(const QGeoCoordinate& coordinate, QPointF screenCoordinate);
 
     void setZoom(double newZoom);
 
-    Q_INVOKABLE void setZoom(double newZoom, const QPointF& screenPosition);
+    Q_INVOKABLE void setZoom(double newZoom, QPointF screenCoordinate);
 
     double zoom() const
     {
@@ -88,10 +88,6 @@ protected:
     void paint(QPainter *painter) override;
 
 private:
-    QPointF toWorldPixelCoordinate(const QGeoCoordinate& coordinate) const {
-        return exp2(m_zoom+8.0)*webMercatorProjection(coordinate);
-    }
-
     QVector<GeoMaps::Airspace> m_airspaces;
     QVector<GeoMaps::Waypoint> m_waypoints;
 

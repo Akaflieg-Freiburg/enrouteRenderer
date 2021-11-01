@@ -36,7 +36,7 @@ ApplicationWindow {
                     flightMap.setCenter(centerOnClicked, Qt.point(mouse.x,mouse.y))
                 }
                 onPressed: function (mouse) {
-                    centerOnClicked = flightMap.fromPixelCoordinate(Qt.point(mouse.x,mouse.y))
+                    centerOnClicked = flightMap.fromScreenCoordinate(Qt.point(mouse.x,mouse.y))
                 }
 
                 onWheel: function (wheel) {

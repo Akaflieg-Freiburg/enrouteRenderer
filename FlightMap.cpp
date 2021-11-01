@@ -36,8 +36,6 @@
 FlightMap::FlightMap(QQuickItem *parent)
     : QQuickPaintedItem(parent)
 {
-    qWarning() << inverseWebMercatorProjection( webMercatorProjection( QGeoCoordinate(48, 7)));
-
 
     QFile file(":data/Germany.geojson");
     file.open(QIODevice::ReadOnly);
@@ -74,7 +72,7 @@ void FlightMap::paint(QPainter *painter)
         auto geoPolygon = airspace.polygon();
         QPolygonF pixelPolygon;
         foreach(auto coordinate, geoPolygon.perimeter()) {
-            pixelPolygon.append( toPixelCoordinate(coordinate) );
+            pixelPolygon.append( toScreenCoordinate(coordinate) );
         }
 
         if ((airspace.CAT() == "A") ||
@@ -200,8 +198,13 @@ void FlightMap::paint(QPainter *painter)
     // Draw waypoints
     foreach(auto waypoint, m_waypoints) {
         QImage image(":"+waypoint.icon());
-        auto center = toPixelCoordinate(waypoint.coordinate());
-        painter->drawImage(center.x()-image.width()/2.0, center.y()-image.height()/2.0, image);
+        auto center = toScreenCoordinate(waypoint.coordinate());
+
+        painter->save();
+        painter->translate(center);
+        painter->rotate(waypoint.iconOrientation());
+        painter->drawImage(qRound(-image.width()/2.0), qRound(-image.height()/2.0), image);
+        painter->restore();
     }
 
 }
@@ -243,7 +246,8 @@ void FlightMap::setCenter(const QGeoCoordinate& newCenter)
     update();
 }
 
-void FlightMap::setCenter(const QGeoCoordinate& coordinate, const QPointF& screenPosition)
+
+void FlightMap::setCenter(const QGeoCoordinate& coordinate, QPointF screenPosition)
 {
     auto inter = exp2(m_zoom+8.0)*webMercatorProjection(coordinate)-screenPosition+QPointF(width()/2.0, height()/2.0);
     setCenter( inverseWebMercatorProjection(exp2(-m_zoom-8.0)*inter) );
@@ -265,16 +269,15 @@ void FlightMap::setZoom(double newZoom)
         return;
     }
 
-    qWarning() << "new zoom" << newZoom;
     m_zoom = newZoom;
     emit zoomChanged();
     update();
 }
 
 
-void FlightMap::setZoom(double newZoom, const QPointF& screenPosition)
+void FlightMap::setZoom(double newZoom, QPointF screenPosition)
 {
-    auto coord = fromPixelCoordinate(screenPosition);
+    auto coord = fromScreenCoordinate(screenPosition);
     setZoom(newZoom);
     setCenter(coord, screenPosition);
 }
