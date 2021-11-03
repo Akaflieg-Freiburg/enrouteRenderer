@@ -4,8 +4,8 @@
 #include "geomaps/Waypoint.h"
 
 #include <QGeoCoordinate>
+#include <QtSql/QSqlDatabase>
 #include <QtQuick/QQuickPaintedItem>
-
 
 class FlightMap : public QQuickPaintedItem
 {
@@ -38,11 +38,23 @@ public:
         return exp2(m_zoom+8.0)*delta+QPointF(width()/2.0, height()/2.0);
     }
 
+    Q_INVOKABLE QPointF toScreenCoordinate(const QPointF& webMercatorCoordinate)
+    {
+        auto delta = webMercatorCoordinate-webMercatorProjection(m_center);
+        return exp2(m_zoom+8.0)*delta+QPointF(width()/2.0, height()/2.0);
+    }
+
     Q_INVOKABLE QGeoCoordinate fromScreenCoordinate(const QPointF& screenCoordinate)
     {
         auto webMercatorCoords = exp2(-m_zoom-8.0)*(screenCoordinate-QPointF(width()/2.0, height()/2.0))+webMercatorProjection(m_center);
         return inverseWebMercatorProjection(webMercatorCoords);
     }
+
+    Q_INVOKABLE QPointF webMeractorFromScreenCoordinate(const QPointF& screenCoordinate)
+    {
+        return exp2(-m_zoom-8.0)*(screenCoordinate-QPointF(width()/2.0, height()/2.0))+webMercatorProjection(m_center);
+    }
+
 
     void setBearing(double newBearing);
 

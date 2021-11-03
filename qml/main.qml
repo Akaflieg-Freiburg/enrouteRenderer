@@ -48,6 +48,15 @@ ApplicationWindow {
 
         Label {
             Layout.leftMargin: 5
+            text: "Zoom"
+        }
+        Label {
+            Layout.fillWidth: true
+            Layout.leftMargin: 5
+            text: flightMap.zoom
+        }
+        Label {
+            Layout.leftMargin: 5
             text: "Bearing"
         }
         Slider {

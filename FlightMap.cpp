@@ -28,6 +28,7 @@
 #include <QPainterPath>
 #include <QPixmap>
 #include <QSet>
+#include <QSqlQuery>
 #include <cmath>
 
 #include "FlightMap.h"
@@ -66,6 +67,47 @@ FlightMap::FlightMap(QQuickItem *parent)
 
 void FlightMap::paint(QPainter *painter)
 {
+    // Draw tiles
+    auto step = exp2(-floor(m_zoom));
+
+    auto upperLeft_in_webMercator = webMeractorFromScreenCoordinate( QPointF(0.0,0.0) );
+    auto lowerRight_in_webMercator = webMeractorFromScreenCoordinate( QPointF(width(), height()) );
+
+    auto db = QSqlDatabase::addDatabase("QSQLITE", "/home/kebekus/Downloads/ed_256.mbtiles");
+    db.setDatabaseName("/home/kebekus/Austausch/ed_256.mbtiles");
+    db.open();
+    if (db.isOpenError()) {
+        qWarning() << "Unable to open database";
+    }
+
+    for( auto x = qFloor(upperLeft_in_webMercator.x()/step); step*x < lowerRight_in_webMercator.x(); x+= 1.0) {
+        QPointF z = toScreenCoordinate( QPointF(step*x, upperLeft_in_webMercator.y()) );
+        painter->drawLine(z.x(), 0, z.x(), height());
+        for( auto y = qFloor(upperLeft_in_webMercator.y()/step); step*y < lowerRight_in_webMercator.y(); y+= 1.0) {
+            QPointF z = toScreenCoordinate( QPointF(step*x, step*y) );
+            painter->drawLine(0, z.y(), width(), z.y());
+
+            int zoom = qFloor(m_zoom);
+            quint32 yflipped = ((quint32(1) << zoom)-1)-y;
+            QString queryString = QString("select zoom_level, tile_column, tile_row, tile_data from tiles where zoom_level=%1 and tile_column=%2 and tile_row=%3;").arg(zoom).arg(x).arg(yflipped);
+
+            QSqlQuery query(db);
+            query.exec(queryString);
+
+            // Error handling
+            if (!query.first()) {
+                continue;
+            }
+            qWarning() << query.value(2);
+            QByteArray tileData = query.value(3).toByteArray();
+            QImage img;
+            img.loadFromData(tileData);
+            painter->drawImage(z.x(), z.y(), img);
+
+        }
+    }
+
+
 
     // Draw airspaces
     foreach(auto airspace, m_airspaces) {
