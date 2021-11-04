@@ -102,6 +102,10 @@ void FlightMap::paint(QPainter *painter)
             QByteArray tileData = query.value(3).toByteArray();
             QImage img;
             img.loadFromData(tileData);
+            QPointF gg = toScreenCoordinate( QPointF(step*(x+1), step*(y+1)) );
+            auto sc = gg.x()-z.x();
+            qWarning() << sc << gg << z;
+            img = img.scaled(sc, sc);
             painter->drawImage(z.x(), z.y(), img);
 
         }
