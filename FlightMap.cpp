@@ -1,32 +1,10 @@
-/***************************************************************************
- *   Copyright (C) 2019 by Stefan Kebekus                                  *
- *   stefan.kebekus@gmail.com                                              *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 3 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
-
 #include <QDebug>
 #include <QFile>
-#include <QImageReader>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QPainter>
 #include <QPainterPath>
-#include <QPixmap>
 #include <QSet>
 #include <QSqlQuery>
 #include <cmath>
@@ -64,54 +42,25 @@ FlightMap::FlightMap(QQuickItem *parent)
 }
 
 
-
 void FlightMap::paint(QPainter *painter)
 {
     // Draw tiles
-    auto step = exp2(-floor(m_zoom));
+    auto integralZoom = round(m_zoom);
+    auto step = exp2(-integralZoom);
+    auto tileSize = qCeil( exp2(m_zoom+8.0-integralZoom) );
 
-    auto upperLeft_in_webMercator = webMeractorFromScreenCoordinate( QPointF(0.0,0.0) );
-    auto lowerRight_in_webMercator = webMeractorFromScreenCoordinate( QPointF(width(), height()) );
+    auto upperLeft_in_webMercator = webMeractorFromScreenCoordinate( {0.0, 0.0} );
+    auto lowerRight_in_webMercator = webMeractorFromScreenCoordinate( {width(), height()} );
 
-    auto db = QSqlDatabase::addDatabase("QSQLITE", "/home/kebekus/Downloads/ed_256.mbtiles");
-    db.setDatabaseName("/home/kebekus/Austausch/ed_256.mbtiles");
-    db.open();
-    if (db.isOpenError()) {
-        qWarning() << "Unable to open database";
-    }
-
-    for( auto x = qFloor(upperLeft_in_webMercator.x()/step); step*x < lowerRight_in_webMercator.x(); x+= 1.0) {
-        QPointF z = toScreenCoordinate( QPointF(step*x, upperLeft_in_webMercator.y()) );
-        painter->drawLine(z.x(), 0, z.x(), height());
-        for( auto y = qFloor(upperLeft_in_webMercator.y()/step); step*y < lowerRight_in_webMercator.y(); y+= 1.0) {
-            QPointF z = toScreenCoordinate( QPointF(step*x, step*y) );
-            painter->drawLine(0, z.y(), width(), z.y());
-
-            int zoom = qFloor(m_zoom);
-            quint32 yflipped = ((quint32(1) << zoom)-1)-y;
-            QString queryString = QString("select zoom_level, tile_column, tile_row, tile_data from tiles where zoom_level=%1 and tile_column=%2 and tile_row=%3;").arg(zoom).arg(x).arg(yflipped);
-
-            QSqlQuery query(db);
-            query.exec(queryString);
-
-            // Error handling
-            if (!query.first()) {
+    for(auto col = qFloor(upperLeft_in_webMercator.x()/step); step*col < lowerRight_in_webMercator.x(); col+= 1) {
+        for(auto row = qFloor(upperLeft_in_webMercator.y()/step); step*row < lowerRight_in_webMercator.y(); row+= 1) {
+            QImage img = m_tileRenderer.render(qRound(integralZoom), col, row);
+            if (img.isNull()) {
                 continue;
             }
-            qWarning() << query.value(2);
-            QByteArray tileData = query.value(3).toByteArray();
-            QImage img;
-            img.loadFromData(tileData);
-            QPointF gg = toScreenCoordinate( QPointF(step*(x+1), step*(y+1)) );
-            auto sc = gg.x()-z.x();
-            qWarning() << sc << gg << z;
-            img = img.scaled(sc, sc);
-            painter->drawImage(z.x(), z.y(), img);
-
+            painter->drawImage(toScreenCoordinate( QPointF(step*col, step*row) ), img.scaled(tileSize, tileSize));
         }
     }
-
-
 
     // Draw airspaces
     foreach(auto airspace, m_airspaces) {
@@ -324,13 +273,16 @@ void FlightMap::setZoom(double newZoom)
     if (!qIsFinite(newZoom)) {
         return;
     }
+    if ( qFuzzyIsNull(newZoom-round(newZoom)) ) {
+        newZoom = round(newZoom);
+    }
     if (newZoom < minZoom) {
         return;
     }
     if (newZoom > maxZoom) {
         return;
     }
-    if (newZoom == m_zoom) {
+    if (qFuzzyCompare(newZoom, m_zoom)) {
         return;
     }
 

@@ -32,6 +32,8 @@ set(SOURCES
   FlightMap.cpp
   FlightMap.h
   main.cpp
+  TileRenderer.cpp
+  TileRenderer.h
   units/Distance.cpp
   units/Distance.h
   )
