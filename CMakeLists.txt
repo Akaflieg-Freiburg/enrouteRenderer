@@ -16,6 +16,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include required packages
+find_package(Protobuf REQUIRED)
 find_package(Qt6 COMPONENTS Core Positioning Quick Sql REQUIRED)
 
 
@@ -38,13 +39,14 @@ set(SOURCES
   units/Distance.h
   )
 
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS vector_tile.proto)
   
 #
 # Add executable
 #
 
-qt_add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Positioning Qt6::Quick Qt6::Sql)
+qt_add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${Protobuf_LIBRARIES} Qt6::Core Qt6::Positioning Qt6::Quick Qt6::Sql)
   
 qt_add_qml_module(${PROJECT_NAME}
     URI gui
