@@ -53,7 +53,6 @@ QImage TileRenderer::render(int zoom, int column, int row)
     }
 
     auto uncompressedData = compression::gzUncompress(tileData);
-    qWarning() << tileData.size() << uncompressedData.size();
 
     QFile file("/home/kebekus/experiment/t.data");
     file.open(QIODeviceBase::WriteOnly);
