@@ -1,12 +1,38 @@
 
 #include "compression.h"
 #include "TileRenderer.h"
+#include "vector_tile.pb.h"
 
 #include <QDebug>
+#include <QtEndian>
 #include <QFile>
 #include <QImage>
+#include <QPainter>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+
+
+#define GZIP_MAGIC      0x1F8B
+#define GZIP_MAGIC_MASK 0xFFFF
+#define PBF_MAGIC       0x1A00
+#define PBF_MAGIC_MASK  0xFF00
+
+static bool isMagic(quint16 magic, quint16 mask, quint16 value)
+{
+    return ((qFromBigEndian(value) & mask) == magic);
+}
+
+static bool isGZIPPBF(quint16 magic)
+{
+    return isMagic(GZIP_MAGIC, GZIP_MAGIC_MASK, magic);
+}
+
+static bool isPlainPBF(quint16 magic)
+{
+    return isMagic(PBF_MAGIC, PBF_MAGIC_MASK, magic);
+}
+
+
 
 
 TileRenderer::TileRenderer(QObject* parent)
@@ -15,9 +41,7 @@ TileRenderer::TileRenderer(QObject* parent)
 
 }
 
-
-
-QImage TileRenderer::render(int zoom, int column, int row)
+QByteArray TileRenderer::getTileData(int zoom, int column, int row)
 {
     //QString fileName("/home/kebekus/Austausch/ICAO+VFR+DE+21Q1.mbtiles");
     //QString fileName("/home/kebekus/Austausch/ed_256.mbtiles");
@@ -39,25 +63,73 @@ QImage TileRenderer::render(int zoom, int column, int row)
     QSqlQuery query(db);
     query.exec(queryString);
     if (!query.first()) {
+        qWarning() << queryString  << "Query has no result";
         return {};
     }
-    QByteArray tileData = query.value(3).toByteArray();
-    if (tileData.isEmpty()) {
+    return query.value(3).toByteArray();
+}
+
+
+QImage TileRenderer::render(int zoom, int column, int row)
+{
+    auto tileData = getTileData(zoom, column, row);
+    if (tileData.size() < 2) {
         return {};
     }
 
-    // Check if data is image. In that case, our job is easy.
-    auto image = QImage::fromData(tileData, "PNG");
-    if (!image.isNull()) {
-        return image;
+    // Check if data is gzip compressed. Uncompress if it is
+    quint16 magic = *((quint16*)tileData.constData());
+    if (isGZIPPBF(magic)) {
+        tileData = compression::gzUncompress(tileData);
+        magic = *((quint16*)tileData.constData());
     }
 
-    auto uncompressedData = compression::gzUncompress(tileData);
+    // Check if data is PBF.
+    if (isPlainPBF(magic)) {
+        return renderTile(tileData);
+    }
 
-    QFile file("/home/kebekus/experiment/t.data");
-    file.open(QIODeviceBase::WriteOnly);
-    file.write(tileData);
-    file.close();
+    // If data is not PBF, we assume that it is a PNG image
+    return QImage::fromData(tileData, "PNG");
+}
 
-    return {};
+
+void renderTransportation(QPainter* painter, vector_tile::Tile_Layer& pbfLayer)
+{
+    qWarning() << "Render Transportation";
+
+    for (int i = 0; i < pbfLayer.features().size(); i++) {
+        auto feature = pbfLayer.features(i);
+        qWarning() << QString::fromStdString(feature.DebugString());
+    }
+}
+
+
+QImage TileRenderer::renderTile(QByteArray PBFdata)
+{
+    qWarning() << "Render PBF tile";
+
+    QImage image(imageSize, imageSize, QImage::Format_RGB32);
+    image.fill(Qt::white);
+
+
+    // Parse protobuffer
+    vector_tile::Tile data;
+    if (!data.ParseFromArray(PBFdata.constData(), PBFdata.size())) {
+        qCritical() << "Invalid PBF data";
+        return {};
+    }
+
+    // Go through layers
+    QPainter paint(&image);
+    for(int i=0; i< data.layers_size(); i++) {
+        auto layer = data.layers(i);
+        auto name = QString::fromStdString(layer.name());
+        if (name == "transportation") {
+            renderTransportation(&paint, layer);
+        }
+    }
+    paint.end();
+
+    return image;
 }
