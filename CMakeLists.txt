@@ -30,8 +30,12 @@ set(SOURCES
   geomaps/Airspace.h
   geomaps/Waypoint.cpp
   geomaps/Waypoint.h
+  Feature.cpp
+  Feature.h
   FlightMap.cpp
   FlightMap.h
+  Layer.cpp
+  Layer.h
   main.cpp
   TileRenderer.cpp
   TileRenderer.h

@@ -1,5 +1,7 @@
 
 #include "compression.h"
+#include "Feature.h"
+#include "Layer.h"
 #include "TileRenderer.h"
 #include "vector_tile.pb.h"
 
@@ -40,6 +42,7 @@ TileRenderer::TileRenderer(QObject* parent)
 {
 
 }
+
 
 QByteArray TileRenderer::getTileData(int zoom, int column, int row)
 {
@@ -93,6 +96,42 @@ QImage TileRenderer::render(int zoom, int column, int row)
     return QImage::fromData(tileData, "PNG");
 }
 
+static QVariant value(const vector_tile::Tile_Value &val)
+{
+    if (val.has_bool_value())
+        return QVariant(val.bool_value());
+    else if (val.has_int_value())
+        return QVariant((qlonglong)val.int_value());
+    else if (val.has_sint_value())
+        return QVariant((qlonglong)val.sint_value());
+    else if (val.has_uint_value())
+        return QVariant((qulonglong)val.uint_value());
+    else if (val.has_float_value())
+        return QVariant(val.float_value());
+    else if (val.has_double_value())
+        return QVariant(val.double_value());
+    else if (val.has_string_value())
+        return QVariant(QString::fromStdString(val.string_value()));
+    else
+        return QVariant();
+}
+
+
+void renderLandcover(QPainter* painter, Layer& layer)
+{
+    qWarning() << "Render Landcover";
+
+    painter->setPen({});
+    painter->setBrush(Qt::green);
+    foreach(auto feature, layer.features()) {
+//        qWarning() << "A1";
+        auto path = feature->path({1/8.0, 1/8.0});
+//        qWarning() << "A2" << path;
+        painter->drawPath(path);
+//      qWarning() << "A3";
+    }
+}
+
 
 void renderTransportation(QPainter* painter, vector_tile::Tile_Layer& pbfLayer)
 {
@@ -100,14 +139,12 @@ void renderTransportation(QPainter* painter, vector_tile::Tile_Layer& pbfLayer)
 
     for (int i = 0; i < pbfLayer.features().size(); i++) {
         auto feature = pbfLayer.features(i);
-        qWarning() << QString::fromStdString(feature.DebugString());
     }
 }
 
 
 QImage TileRenderer::renderTile(QByteArray PBFdata)
 {
-    qWarning() << "Render PBF tile";
 
     QImage image(imageSize, imageSize, QImage::Format_RGB32);
     image.fill(Qt::white);
@@ -119,16 +156,22 @@ QImage TileRenderer::renderTile(QByteArray PBFdata)
         qCritical() << "Invalid PBF data";
         return {};
     }
+    // Generate layers
+    QHash<QString, Layer> layers;
+    for(int i=0; i< data.layers_size(); i++) {
+        auto PBFLayer = data.layers(i);
+        auto name = QString::fromStdString(PBFLayer.name());
+        layers[name] = Layer(&PBFLayer);
+    }
+
 
     // Go through layers
     QPainter paint(&image);
-    for(int i=0; i< data.layers_size(); i++) {
-        auto layer = data.layers(i);
-        auto name = QString::fromStdString(layer.name());
-        if (name == "transportation") {
-            renderTransportation(&paint, layer);
-        }
+
+    if (layers.contains("landcover")) {
+        renderLandcover(&paint, layers["landcover"]);
     }
+
     paint.end();
 
     return image;
