@@ -2,7 +2,7 @@
 
 #include "geomaps/Airspace.h"
 #include "geomaps/Waypoint.h"
-#include "TileRenderer.h"
+#include "TileCache.h"
 
 #include <QGeoCoordinate>
 #include <QtSql/QSqlDatabase>
@@ -101,7 +101,7 @@ protected:
     void paint(QPainter *painter) override;
 
 private:
-    TileRenderer m_tileRenderer;
+    TileCache m_tileCache;
 
     QVector<QRectF> blockedRectagles;
 

@@ -138,30 +138,83 @@ void renderLandcover(QPainter* painter, Layer& layer)
 }
 
 
+void renderPlaces(QPainter* painter, Layer& layer)
+{
+
+    foreach(auto feature, layer.features()) {
+
+        auto classTag = feature->value("class", layer).toString();
+        auto nameTag = feature->value("name", layer).toString();
+
+        auto path = feature->path({1/8.0, 1/8.0});
+        if ((classTag == "city") || (classTag == "town") || (classTag == "village")) {
+            painter->drawText( path.pointAtPercent(0.5), nameTag);
+        }
+
+    }
+
+}
+
+
 void renderTransportation(QPainter* painter, Layer& layer)
 {
 
-    QPen black( Qt::black );
-    black.setWidth(2);
-    painter->setPen( black );
-//    painter->setBrush( Qt::black );
+    QPainterPath motorway;
+    QPainterPath primary;
+    QPainterPath secondary;
+    QPainterPath railroad;
 
     foreach(auto feature, layer.features()) {
-/*        auto classTag = feature->value("class", layer).toString();
-
-        if (classTag == "grass") {
-            painter->setBrush( QColor::fromHslF(82/360.0, .46, .72, .45) );
-        } else if (classTag == "wood") {
-            painter->setBrush( QColor::fromHslF(82/360.0, .46, .72) );
-        } else {
-//            qWarning() << "Layer landcover, unknown tag" << classTag << subclassTag;
-            continue;
-        }
-        */
+        auto classTag = feature->value("class", layer).toString();
         auto path = feature->path({1/8.0, 1/8.0});
-        painter->drawPath(path);
+
+        if ((classTag == "motorway") || (classTag == "trunk")){
+            motorway.addPath(path);
+        }
+        if (classTag == "primary") {
+            primary.addPath(path);
+        }
+        if (classTag == "secondary") {
+            secondary.addPath(path);
+        }
+        if (classTag == "rail") {
+            railroad.addPath(path);
+        }
     }
+
+    // Draw road background
+    QPen pen;
+    pen.setColor( Qt::red );
+    pen.setWidth(8);
+    painter->setPen( pen );
+    painter->drawPath(motorway);
+    painter->drawPath(primary);
+    painter->drawPath(secondary);
+
+    // Draw motorway foreground
+    pen.setWidth(6);
+    pen.setColor( pen.color().lighter() );
+    painter->setPen( pen );
+    painter->drawPath(motorway);
+
+    // Draw primary
+    pen.setColor( Qt::yellow );
+    painter->setPen( pen );
+    painter->drawPath(primary);
+
+    // Draw secondary
+    pen.setColor( Qt::white );
+    painter->setPen( pen );
+    painter->drawPath(secondary);
+
+    // Draw railroads
+    pen.setColor( Qt::black );
+    pen.setWidth(2);
+    painter->setPen( pen );
+    painter->drawPath(railroad);
+
 }
+
 
 void renderWater(QPainter* painter, Layer& layer)
 {
@@ -211,6 +264,9 @@ QImage TileRenderer::renderTile(QByteArray PBFdata)
     }
     if (layers.contains("transportation")) {
         renderTransportation(&paint, layers["transportation"]);
+    }
+    if (layers.contains("place")) {
+        renderPlaces(&paint, layers["place"]);
     }
 
     paint.end();

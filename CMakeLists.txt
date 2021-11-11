@@ -37,6 +37,8 @@ set(SOURCES
   Layer.cpp
   Layer.h
   main.cpp
+  TileCache.cpp
+  TileCache.h
   TileRenderer.cpp
   TileRenderer.h
   compression.cpp

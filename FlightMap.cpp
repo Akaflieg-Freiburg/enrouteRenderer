@@ -54,11 +54,11 @@ void FlightMap::paint(QPainter *painter)
 
     for(auto col = qFloor(upperLeft_in_webMercator.x()/step); step*col < lowerRight_in_webMercator.x(); col+= 1) {
         for(auto row = qFloor(upperLeft_in_webMercator.y()/step); step*row < lowerRight_in_webMercator.y(); row+= 1) {
-            QImage img = m_tileRenderer.render(qRound(integralZoom), col, row);
+            QImage img = m_tileCache.get(qRound(integralZoom), col, row);
             if (img.isNull()) {
                 continue;
             }
-            painter->drawImage(toScreenCoordinate( QPointF(step*col, step*row) ), img.scaled(tileSize, tileSize));
+            painter->drawImage(toScreenCoordinate( QPointF(step*col, step*row) ), img.scaled(tileSize, tileSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
         }
     }
 
