@@ -11,7 +11,7 @@ public:
     Feature() = default;
     Feature(const vector_tile::Tile_Feature data, Layer *layer);
 
-    const QVariant *value(const QString &key) const;
+    QVariant value(const QString &key, const Layer& layer) const;
     vector_tile::Tile_GeomType type() const {return _data.type();}
     QPainterPath path(const QSizeF &factor) const;
 

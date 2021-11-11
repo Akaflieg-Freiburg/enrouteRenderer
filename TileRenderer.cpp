@@ -48,7 +48,8 @@ QByteArray TileRenderer::getTileData(int zoom, int column, int row)
 {
     //QString fileName("/home/kebekus/Austausch/ICAO+VFR+DE+21Q1.mbtiles");
     //QString fileName("/home/kebekus/Austausch/ed_256.mbtiles");
-    QString fileName("/home/kebekus/Austausch/aviation_maps/Europe/Germany.mbtiles");
+    //QString fileName("/home/kebekus/Austausch/aviation_maps/Europe/Germany.mbtiles");
+    QString fileName("/mnt/storage/mbtiles/raw/osm-2017-07-03-v3.6.1-europe_germany.mbtiles");
 
     auto db = QSqlDatabase::database(fileName);
     if (!db.isValid()) {
@@ -119,26 +120,59 @@ static QVariant value(const vector_tile::Tile_Value &val)
 
 void renderLandcover(QPainter* painter, Layer& layer)
 {
-    qWarning() << "Render Landcover";
-
     painter->setPen({});
-    painter->setBrush(Qt::green);
     foreach(auto feature, layer.features()) {
-//        qWarning() << "A1";
+        auto classTag = feature->value("class", layer).toString();
+
+        if (classTag == "grass") {
+            painter->setBrush( QColor::fromHslF(82/360.0, .46, .72, .45) );
+        } else if (classTag == "wood") {
+            painter->setBrush( QColor::fromHslF(82/360.0, .46, .72) );
+        } else {
+//            qWarning() << "Layer landcover, unknown tag" << classTag << subclassTag;
+            continue;
+        }
         auto path = feature->path({1/8.0, 1/8.0});
-//        qWarning() << "A2" << path;
         painter->drawPath(path);
-//      qWarning() << "A3";
     }
 }
 
 
-void renderTransportation(QPainter* painter, vector_tile::Tile_Layer& pbfLayer)
+void renderTransportation(QPainter* painter, Layer& layer)
 {
-    qWarning() << "Render Transportation";
 
-    for (int i = 0; i < pbfLayer.features().size(); i++) {
-        auto feature = pbfLayer.features(i);
+    QPen black( Qt::black );
+    black.setWidth(2);
+    painter->setPen( black );
+//    painter->setBrush( Qt::black );
+
+    foreach(auto feature, layer.features()) {
+/*        auto classTag = feature->value("class", layer).toString();
+
+        if (classTag == "grass") {
+            painter->setBrush( QColor::fromHslF(82/360.0, .46, .72, .45) );
+        } else if (classTag == "wood") {
+            painter->setBrush( QColor::fromHslF(82/360.0, .46, .72) );
+        } else {
+//            qWarning() << "Layer landcover, unknown tag" << classTag << subclassTag;
+            continue;
+        }
+        */
+        auto path = feature->path({1/8.0, 1/8.0});
+        painter->drawPath(path);
+    }
+}
+
+void renderWater(QPainter* painter, Layer& layer)
+{
+    QPen blue(QColor::fromHslF( 205/360.0, .56, .73));
+    blue.setWidth(2);
+    painter->setPen( blue );
+    painter->setBrush( QColor::fromHslF( 205/360.0, .56, .73) );
+
+    foreach(auto feature, layer.features()) {
+        auto path = feature->path({1/8.0, 1/8.0});
+        painter->drawPath(path);
     }
 }
 
@@ -147,7 +181,7 @@ QImage TileRenderer::renderTile(QByteArray PBFdata)
 {
 
     QImage image(imageSize, imageSize, QImage::Format_RGB32);
-    image.fill(Qt::white);
+    image.fill( QColor::fromHslF(47/360.0, .26, .88) );
 
 
     // Parse protobuffer
@@ -167,9 +201,16 @@ QImage TileRenderer::renderTile(QByteArray PBFdata)
 
     // Go through layers
     QPainter paint(&image);
+    paint.setRenderHint(QPainter::Antialiasing);
 
+    if (layers.contains("water")) {
+        renderWater(&paint, layers["water"]);
+    }
     if (layers.contains("landcover")) {
         renderLandcover(&paint, layers["landcover"]);
+    }
+    if (layers.contains("transportation")) {
+        renderTransportation(&paint, layers["transportation"]);
     }
 
     paint.end();

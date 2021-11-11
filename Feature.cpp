@@ -14,9 +14,9 @@ Feature::Feature(const vector_tile::Tile_Feature data, Layer *layer)
 }
 
 
-const QVariant* Feature::value(const QString& key) const
+QVariant Feature::value(const QString& key, const Layer& layer) const
 {
-    const QHash<QString, google::protobuf::uint32> &keys(_layer->keys());
+    const QHash<QString, google::protobuf::uint32> &keys(layer.keys());
     QHash<QString, google::protobuf::uint32>::const_iterator it(keys.find(key));
     if (it == keys.constEnd())
         return 0;
@@ -24,7 +24,7 @@ const QVariant* Feature::value(const QString& key) const
     google::protobuf::uint32 index = *it;
     for (int i = 0; i < _data.tags_size(); i = i + 2)
         if (_data.tags(i) == index)
-            return &(_layer->values().at(_data.tags(i+1)));
+            return layer.values().at(_data.tags(i+1));
 
     return 0;
 }
